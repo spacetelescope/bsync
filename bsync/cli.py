@@ -6,6 +6,7 @@ import click
 
 from bsync.api import BoxAPI
 from bsync.sync import BoxSync
+from bsync.log import get_logger, LEVELS
 
 
 USER = getuser()
@@ -20,6 +21,8 @@ USER = getuser()
 @click.option('-s', '--settings', envvar='BOX_SETTINGS_FILE',
               type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option('-i', '--ipdb', is_flag=True, help='Drop into ipdb shell on error')
+@click.option('-l', '--log-level', type=click.Choice(LEVELS, case_sensitive=False), help='Log level')
+@click.option('--log-file', type=click.Path(dir_okay=False, path_type=Path), help='Log file')
 @click.option('-o', '--output', help='File to write created items as CSV report')
 def bsync(**options):
     """
@@ -35,8 +38,9 @@ def bsync(**options):
         from ipdb import launch_ipdb_on_exception
         ctx = launch_ipdb_on_exception
     with ctx():
-        api = BoxAPI(options)
-        bsync = BoxSync(options, api)
+        logger = get_logger(options)
+        api = BoxAPI(options, logger)
+        bsync = BoxSync(options, api, logger)
         bsync()
         if options['output']:
             bsync.output(options['output'])
