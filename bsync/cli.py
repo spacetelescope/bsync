@@ -23,7 +23,8 @@ USER = getuser()
 @click.option('-i', '--ipdb', is_flag=True, help='Drop into ipdb shell on error')
 @click.option('-l', '--log-level', type=click.Choice(LEVELS, case_sensitive=False), help='Log level')
 @click.option('--log-file', type=click.Path(dir_okay=False, path_type=Path), help='Log file')
-@click.option('-o', '--output', help='File to write created items as CSV report')
+@click.option('-o', '--output', type=click.Path(dir_okay=False, path_type=Path),
+              help='File to write created items as CSV report')
 def bsync(**options):
     """
     Syncs the contents of local folder to your Box account

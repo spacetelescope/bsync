@@ -5,10 +5,6 @@ import sys
 from boxsdk.object.folder import Folder
 
 
-def fmt_item(item):
-    return f'{item.id}:{item.name}'
-
-
 class BoxSync:
 
     def __init__(self, options, api, logger):
@@ -43,7 +39,7 @@ class BoxSync:
         local_dirs = [path for path in local_paths if path.is_dir()]
         new_dirs = {}
 
-        self.logger.info(f'Syncing {len(local_files)} in {len(local_dirs)} folders from {self.source_folder}')
+        self.logger.info(f'Syncing {len(local_files)} files in {len(local_dirs)} folders from {self.source_folder}')
 
         def get_parent(path):
             parent = path.parent
@@ -70,7 +66,7 @@ class BoxSync:
     def output(self, filename=None):
         outfile = sys.stdout if filename is None else open(filename, 'w')
         writer = csv.writer(outfile)
-        writer.writerow(('Parent Folder', 'New File/Folder'))
-        writer.writerows([(fmt_item(parent), fmt_item(item)) for parent, item in self.created])
+        writer.writerow(('Parent Folder ID', 'Parent Folder Name', 'New Item ID', 'New Item Name'))
+        writer.writerows([(parent.id, parent.name, item.id, item.name) for parent, item in self.created])
         if filename is not None:
             outfile.close()

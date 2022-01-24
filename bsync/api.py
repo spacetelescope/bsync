@@ -8,6 +8,36 @@ from boxsdk.exception import BoxAPIException
 from progress.bar import Bar
 
 
+def send_chunked(path, session_func):
+    total_size = os.stat(path).st_size
+    sha1 = hashlib.sha1()
+    upload_session = session_func(total_size, path.name)
+    part_array = []
+    bar = Bar(path.name, max=upload_session.total_parts)
+    content_stream = open(path, 'rb')
+
+    for part_num in range(upload_session.total_parts):
+        copied_length = 0
+        chunk = b''
+        while copied_length < upload_session.part_size:
+            bytes_read = content_stream.read(upload_session.part_size - copied_length)
+            if bytes_read is None:
+                continue
+            if len(bytes_read) == 0:
+                break
+            chunk += bytes_read
+            copied_length += len(bytes_read)
+
+        uploaded_part = upload_session.upload_part_bytes(chunk, part_num * upload_session.part_size, total_size)
+        bar.next()
+        part_array.append(uploaded_part)
+        sha1.update(chunk)
+    content_sha1 = sha1.digest()
+    uploaded_file = upload_session.commit(content_sha1=content_sha1, parts=part_array)
+    bar.finish()
+    return uploaded_file
+
+
 class BoxAPI:
     def __init__(self, options, logger):
         self.options = options
@@ -32,43 +62,25 @@ class BoxAPI:
         self.logger.info(f'Created Box client for user {user}')
         return client
 
-    def upload_simple(self, folder_id, fn):
-        new_file = self.client.folder(folder_id).upload(fn)
-        self.logger.info(f'File "{new_file.name}" uploaded to Box with file ID {new_file.id}')
-        return new_file
-
-    def upload(self, parent_id, fn):
-        total_size = os.stat(fn).st_size
+    def upload(self, parent_id, fname):
+        total_size = os.stat(fname).st_size
+        folder = self.client.folder(parent_id)
         if total_size < 20000000:
-            return self.upload_simple(parent_id, fn)
-        parent_folder = self.client.folder(parent_id)
-        sha1 = hashlib.sha1()
-        upload_session = parent_folder.create_upload_session(file_size=total_size, file_name=fn.name)
-        part_array = []
-        bar = Bar(fn.name, max=upload_session.total_parts)
-        content_stream = open(fn, 'rb')
-
-        for part_num in range(upload_session.total_parts):
-            copied_length = 0
-            chunk = b''
-            while copied_length < upload_session.part_size:
-                bytes_read = content_stream.read(upload_session.part_size - copied_length)
-                if bytes_read is None:
-                    continue
-                if len(bytes_read) == 0:
-                    break
-                chunk += bytes_read
-                copied_length += len(bytes_read)
-
-            uploaded_part = upload_session.upload_part_bytes(chunk, part_num * upload_session.part_size, total_size)
-            bar.next()
-            part_array.append(uploaded_part)
-            sha1.update(chunk)
-        content_sha1 = sha1.digest()
-        uploaded_file = upload_session.commit(content_sha1=content_sha1, parts=part_array)
-        bar.finish()
+            uploaded_file = folder.upload(fname, upload_using_accelerator=True)
+        else:
+            uploaded_file = send_chunked(fname, folder.create_upload_session)
         self.logger.info(f'Uploaded File ID: {uploaded_file.id} and File Name: {uploaded_file.name}')
         return uploaded_file
+
+    def update(self, file_id, fname):
+        total_size = os.stat(fname).st_size
+        boxfile = self.client.file(file_id)
+        if total_size < 20000000:
+            updated_file = boxfile.update_contents(fname, upload_using_accelerator=True)
+        else:
+            updated_file = send_chunked(fname, boxfile.create_upload_session)
+        self.logger.info(f'Updated File ID: {updated_file.id} and File Name: {updated_file.name}')
+        return updated_file
 
     def create_folder(self, parent_id, name):
         subfolder = self.client.folder(parent_id).create_subfolder(name)
