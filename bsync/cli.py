@@ -45,9 +45,3 @@ def bsync(**options):
         bsync()
         if options['output']:
             bsync.output(options['output'])
-
-
-if __name__ == '__main__':
-    import ipdb
-    with ipdb.launch_ipdb_on_exception():
-        bsync()

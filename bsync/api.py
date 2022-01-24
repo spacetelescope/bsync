@@ -4,7 +4,6 @@ import hashlib
 from functools import cached_property
 
 from boxsdk import Client, JWTAuth
-from boxsdk.exception import BoxAPIException
 from progress.bar import Bar
 
 
@@ -86,44 +85,3 @@ class BoxAPI:
         subfolder = self.client.folder(parent_id).create_subfolder(name)
         self.logger.info(f'Created subfolder {subfolder.id}({name}) in {parent_id}')
         return subfolder
-
-    def box_item(attr):
-        def inner(self, fid, get=True):
-            item = getattr(self.client, attr)(fid)
-            if get:
-                self.logger.debug(f'API GET {attr} {fid}')
-                return item.get()
-            return item
-        inner.__name__ = attr
-        return inner
-    folder = box_item('folder')
-    file = box_item('file')
-
-    def get_or_404(self, box_id, get=True, getter=None):
-        getter_name = getter.__name__.title()
-        try:
-            return getter(box_id, get)
-        except BoxAPIException as exc:
-            if exc.message == 'Item is trashed':
-                self.logger.warning(f'{getter_name} {box_id} already trashed')
-            elif exc.message == 'Not Found':
-                self.logger.warning(f'{getter_name} {box_id} not found')
-            else:
-                raise
-        else:
-            self.logger.debug(f'Fetched {box_id}')
-
-    def get_file_or_404(self, box_id, get=True):
-        return self.get_or_404(box_id, get, self.file)
-
-    def get_folder_or_404(self, box_id, get=True):
-        return self.get_or_404(box_id, get, self.folder)
-
-
-if __name__ == '__main__':
-    import ipdb
-    from IPython import embed
-    with ipdb.launch_ipdb_on_exception():
-        api = BoxAPI('jquick')
-        api.sync()
-        embed()
