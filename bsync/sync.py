@@ -1,6 +1,6 @@
 from pathlib import Path
 import csv
-import sys
+import os
 
 from boxsdk.object.folder import Folder
 
@@ -10,15 +10,16 @@ class BoxSync:
     def __init__(self, options, api, logger):
         self.api = api
         self.logger = logger
-        self.parent_folder = api.folder(options['box_folder_id'])
+        self.parent_folder_id = options['box_folder_id']
+        self.parent_folder = api.client.folder(self.parent_folder_id).get()
         self.source_folder = Path(options['source_folder'])
-        self.created = []
+        self.changes = []
 
     def to_path(self, item):
-        item = vars(item.get())
+        path_collection = item.get(fields=['path_collection']).path_collection
         item_path = None
-        for entry in item['path_collection']['entries']:
-            if entry.id == self.parent_folder.id:
+        for entry in path_collection['entries']:
+            if entry == self.parent_folder:
                 item_path = self.source_folder
             elif item_path is not None:
                 item_path = item_path / entry.name
@@ -26,11 +27,11 @@ class BoxSync:
 
     def get_box_paths(self, folder_id=None):
         if folder_id is None:
-            folder_id = self.parent_folder.id
-        for item in self.api.folder(folder_id).get_items():
+            folder_id = self.parent_folder_id
+        for item in self.api.client.folder(folder_id).get_items():
             yield self.to_path(item), item
             if isinstance(item, Folder):
-                yield from self.get_box_paths(item.id)
+                yield from self.get_box_paths(item._object_id)
 
     def __call__(self):
         box_paths = dict(self.get_box_paths())
@@ -52,21 +53,32 @@ class BoxSync:
             else:
                 raise ValueError(f'Unable to resolve folder path: {parent}')
 
+        # Layout folder/subfolder structure
         for path in local_dirs:
             if path not in box_paths:
                 parent = get_parent(path)
-                new_dirs[path] = subfolder = self.api.create_folder(parent.id, path.name)
-                self.created.append((parent, subfolder))
+                new_dirs[path] = subfolder = self.api.create_folder(parent._object_id, path.name)
+                self.changes.append((parent, subfolder))
+
+        # Sync files
         for path in local_files:
             if path not in box_paths:
                 parent = get_parent(path)
-                new_file = self.api.upload(parent.id, path.resolve())
-                self.created.append((parent, new_file))
+                new_file = self.api.upload(parent._object_id, path.resolve())
+                self.changes.append((parent, new_file))
+            else:
+                boxfile = box_paths[path]
+                size = boxfile.get(fields=['size']).size
+                if size != os.stat(path).st_size:
+                    updated_file = self.api.update(boxfile._object_id, path.resolve())
+                    self.changes.append((get_parent(path), updated_file))
 
-    def output(self, filename=None):
-        outfile = sys.stdout if filename is None else open(filename, 'w')
-        writer = csv.writer(outfile)
-        writer.writerow(('Parent Folder ID', 'Parent Folder Name', 'New Item ID', 'New Item Name'))
-        writer.writerows([(parent.id, parent.name, item.id, item.name) for parent, item in self.created])
-        if filename is not None:
-            outfile.close()
+        if not self.changes:
+            self.logger.warning('No changes detected')
+
+    def output(self, filename):
+        with open(filename, 'w') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(('Item Type', 'Parent Folder ID', 'Parent Folder Name', 'Item ID', 'Item Name'))
+            for parent, item in self.changes:
+                writer.writerow([item.__class__.__name__, parent._object_id, parent.name, item._object_id, item.name])
