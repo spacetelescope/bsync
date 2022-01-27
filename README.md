@@ -7,7 +7,7 @@ Right now, this only syncs your folder to Box and not Box to your folder
 
 ## Install
 
-`python setup.py develop`
+`pip install bsync`
 
 ## Configuration
 

@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 with open('README.md', 'r', encoding='utf-8') as fh:
@@ -9,10 +9,10 @@ setup(
     version='0.1.0',
     author='Justin Quick',
     author_email='jquick@stsci.edu',
-    url='',
+    url='https://github.com/spacetelescope/bsync',
     license='APACHE 2',
     license_files=('LICENSE',),
-    description='rsync for Box.com',
+    description='Sync files from your computer to Box.com using the Box API. Think rsync for Box.com',
     long_description=long_description,
     long_description_content_type='text/markdown',
     python_requires='>=3.5',
