@@ -5,3 +5,4 @@ files/
 *.egg-info
 dist
 build
+.tox/
