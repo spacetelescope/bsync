@@ -1,7 +1,6 @@
 import json
 import os
 import hashlib
-from functools import cached_property
 
 from boxsdk import Client, JWTAuth
 from progress.bar import Bar
@@ -41,9 +40,11 @@ class BoxAPI:
     def __init__(self, options, logger):
         self.options = options
         self.logger = logger
+        self._client = None
 
-    @cached_property
     def client(self):
+        if self._client:
+            return self._client
         user = self.options['box_user']
         config = json.load(open(self.options['settings']))
         CLIENT_ID = config['boxAppSettings']['clientID']
@@ -59,6 +60,7 @@ class BoxAPI:
         me = list(client.users(filter_term=user))[0]
         client = client.as_user(me)
         self.logger.info(f'Created Box client for user {user}')
+        self._client = client
         return client
 
     def upload(self, parent_id, fname):

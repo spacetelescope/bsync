@@ -1,6 +1,6 @@
 from pathlib import Path
 from getpass import getuser
-from contextlib import nullcontext
+from contextlib import contextmanager
 
 import click
 
@@ -10,6 +10,11 @@ from bsync.log import get_logger, LEVELS
 
 
 USER = getuser()
+
+
+@contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
 
 
 @click.command()

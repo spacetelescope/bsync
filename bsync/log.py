@@ -5,10 +5,10 @@ LEVELS = {name.lower(): value for name, value in logging._nameToLevel.items() if
 
 
 def get_logger(options):
-    level = LEVELS.get(options['log_level'] or 'info')
+    level = LEVELS.get(options.get('log_level') or 'info')
     logger = logging.getLogger('bsync')
     logger.setLevel(level)
-    handler = logging.FileHandler(options['log_file']) if options['log_file'] else logging.StreamHandler()
+    handler = logging.FileHandler(options['log_file']) if options.get('log_file') else logging.StreamHandler()
     handler.setLevel(level)
     formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
     handler.setFormatter(formatter)

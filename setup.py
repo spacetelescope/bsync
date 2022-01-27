@@ -15,7 +15,7 @@ setup(
     description='rsync for Box.com',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    python_requires='>=3.8',
+    python_requires='>=3.5',
     project_urls={
     },
     classifiers=[
@@ -28,11 +28,13 @@ setup(
     package_data={
 
     },
-    packages=find_packages(),
+    packages=['bsync'],
     install_requires=[
         'boxsdk[jwt]',
         'click',
+        'progress',
     ],
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'bsync=bsync.cli:bsync',
