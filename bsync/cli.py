@@ -3,7 +3,7 @@ from getpass import getuser
 from contextlib import contextmanager
 
 import click
-from ipdb import launch_ipdb_on_exception
+
 
 from bsync.api import BoxAPI
 from bsync.sync import BoxSync
@@ -44,7 +44,10 @@ def bsync(**options):
 
         bsync -s 12345.json -l DEBUG images:*.jpg 123456789
     """
-    ctx = launch_ipdb_on_exception if options['ipdb'] else nullcontext
+    ctx = nullcontext
+    if options['ipdb']:
+        from ipdb import launch_ipdb_on_exception
+        ctx = launch_ipdb_on_exception
     with ctx():
         logger = get_logger(options)
         api = BoxAPI(options, logger)
