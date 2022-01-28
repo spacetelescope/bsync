@@ -5,6 +5,9 @@ LEVELS = {name.lower(): value for name, value in logging._nameToLevel.items() if
 
 
 def get_logger(options):
+    """
+    Configures a logger w/ file/stream handler from settings
+    """
     level = LEVELS.get(options.get('log_level') or 'info')
     logger = logging.getLogger('bsync')
     logger.setLevel(level)

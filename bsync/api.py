@@ -7,6 +7,9 @@ from progress.bar import Bar
 
 
 def send_chunked(path, session_func):
+    """
+    Uses the chunked upload API from Box to upload sequential segments of a file
+    """
     total_size = os.stat(path).st_size
     sha1 = hashlib.sha1()
     upload_session = session_func(total_size, path.name)
@@ -37,12 +40,20 @@ def send_chunked(path, session_func):
 
 
 class BoxAPI:
+    """
+    Wraps boxsdk to create a client and perform actions, logging results
+    """
+
     def __init__(self, options, logger):
         self.options = options
         self.logger = logger
         self._client = None
 
+    @property
     def client(self):
+        """
+        Gets a boxsdk.Client instance from the JSON settings file using JWT
+        """
         if self._client:
             return self._client
         user = self.options['box_user']
@@ -64,6 +75,10 @@ class BoxAPI:
         return client
 
     def upload(self, parent_id, fname):
+        """
+        Uploads a file to the parent folder_id
+        Handles large files by chunking
+        """
         total_size = os.stat(fname).st_size
         folder = self.client.folder(parent_id)
         if total_size < 20000000:
@@ -74,6 +89,9 @@ class BoxAPI:
         return uploaded_file
 
     def update(self, file_id, fname):
+        """
+        Updates the contents of a file and uploads it to an existing file on Box
+        """
         total_size = os.stat(fname).st_size
         boxfile = self.client.file(file_id)
         if total_size < 20000000:
@@ -84,6 +102,9 @@ class BoxAPI:
         return updated_file
 
     def create_folder(self, parent_id, name):
+        """
+        Creates a subfolder in an existing Box folder
+        """
         subfolder = self.client.folder(parent_id).create_subfolder(name)
         self.logger.info(f'Created subfolder {subfolder.id}({name}) in {parent_id}')
         return subfolder

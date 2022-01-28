@@ -3,6 +3,7 @@ from getpass import getuser
 from contextlib import contextmanager
 
 import click
+from ipdb import launch_ipdb_on_exception
 
 from bsync.api import BoxAPI
 from bsync.sync import BoxSync
@@ -18,8 +19,8 @@ def nullcontext(enter_result=None):
 
 
 @click.command()
-@click.argument('source_folder', envvar='SOURCE_FOLDER',
-                type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.argument('source_folder_paths', metavar='SOURCE_FOLDER[:PATHS]', envvar='SOURCE_FOLDER',
+                type=click.Path(path_type=Path))
 @click.argument('box_folder_id', envvar='BOX_FOLDER_ID', type=int)
 @click.option('-u', '--box-user', default=USER, envvar='BOX_USER',
               help=f'User account name on Box.com. Defaults to {USER}')
@@ -34,15 +35,16 @@ def bsync(**options):
     """
     Syncs the contents of local folder to your Box account
 
-    SOURCE_FOLDER is the path of an existing folder
+    SOURCE_FOLDER is the path of an existing local folder.
+    Additional, optional PATHS can be added as a glob expression after the folder.
 
     BOX_FOLDER_ID is the ID for the folder in Box where you want the files sent
+
+    Example:
+
+        bsync -s 12345.json -l DEBUG images:*.jpg 123456789
     """
-    click.echo(options)
-    ctx = nullcontext
-    if options['ipdb']:
-        from ipdb import launch_ipdb_on_exception
-        ctx = launch_ipdb_on_exception
+    ctx = launch_ipdb_on_exception if options['ipdb'] else nullcontext
     with ctx():
         logger = get_logger(options)
         api = BoxAPI(options, logger)

@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setup(
     name='bsync',
-    version='0.1.0',
+    version='0.1.1',
     author='Justin Quick',
     author_email='jquick@stsci.edu',
     url='https://github.com/spacetelescope/bsync',
