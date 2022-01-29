@@ -1,21 +1,23 @@
 from setuptools import setup
 
+from bsync import __version__ as pkg
+
 
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setup(
-    name='bsync',
-    version='0.1.1',
-    author='Justin Quick',
-    author_email='jquick@stsci.edu',
-    url='https://github.com/spacetelescope/bsync',
-    license='APACHE 2',
+    name=pkg.__name__,
+    version=pkg.__version__,
+    author=pkg.__author__,
+    author_email=pkg.__author_email__,
+    url=pkg.__url__,
+    license=pkg.__license__,
     license_files=('LICENSE',),
-    description='Sync files from your computer to Box.com using the Box API. Think rsync for Box.com',
+    description=pkg.__description__,
     long_description=long_description,
     long_description_content_type='text/markdown',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     project_urls={
     },
     classifiers=[

@@ -6,3 +6,5 @@ files/
 dist
 build
 .tox/
+docs/build
+.DS_Store
