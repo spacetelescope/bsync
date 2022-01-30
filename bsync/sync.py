@@ -62,47 +62,71 @@ class BoxSync:
             if isinstance(item, Folder):
                 yield from self.get_box_paths(item._object_id)
 
-    def __call__(self):
+    def prepare(self):
+        """
+        Loads entries from local filesystem and Box
+        Used to decide later which items to sync
+        """
         local_paths = list(self.source_folder.rglob(self.glob))
-        local_files = [path for path in local_paths if path.is_file()]
-        local_dirs = [path for path in local_paths if path.is_dir()]
-        new_dirs = {}
+        self.local_files = [path for path in local_paths if path.is_file()]
+        self.local_dirs = [path for path in local_paths if path.is_dir()]
+        self.new_dirs = {}
+        self.box_paths = dict(self.get_box_paths())
 
-        self.logger.info(f'Syncing {len(local_files)} files in {len(local_dirs) + 1} folders from {self.source_folder}')
+    def get_parent(self, path):
+        """
+        Returns the Box Folder object for the parent folder of path
+        """
+        parent = path.parent
+        if parent == self.source_folder:
+            return self.parent_folder
+        elif parent in self.box_paths:
+            return self.box_paths[parent]
+        elif parent in self.new_dirs:
+            return self.new_dirs[parent]
+        raise ValueError(f'Unable to resolve folder path: {parent}')
 
-        def get_parent(path):
-            parent = path.parent
-            if parent == self.source_folder:
-                return self.parent_folder
-            elif parent in box_paths:
-                return box_paths[parent]
-            elif parent in new_dirs:
-                return new_dirs[parent]
-            else:
-                raise ValueError(f'Unable to resolve folder path: {parent}')
-
-        box_paths = dict(self.get_box_paths())
-
-        # Layout folder/subfolder structure
-        for path in local_dirs:
-            if path not in box_paths:
-                parent = get_parent(path)
-                new_dirs[path] = subfolder = self.api.create_folder(parent._object_id, path.name)
+    def sync_folders(self):
+        """
+        Creates the subfolders in Box.com to match local filesystem
+        Runs before new files are updated/uploaded
+        """
+        for path in self.local_dirs:
+            if path not in self.box_paths:
+                parent = self.get_parent(path)
+                self.new_dirs[path] = subfolder = self.api.create_folder(parent._object_id, path.name)
                 self.changes.append((parent, subfolder))
 
-        # Sync files
-        for path in local_files:
-            if path not in box_paths:
-                parent = get_parent(path)
+    def has_changed(self, boxfile, path):
+        """
+        Compares the file on Box with the path on disk
+        Used to see if the local file has changed
+        """
+        # TODO: compare sha1? expensive for large local files
+        return boxfile.get(fields=['size']).size != os.stat(path).st_size
+
+    def sync_files(self):
+        """
+        Uploads the new or updated files to Box.com
+        Folder structure must be created before running
+        """
+        for path in self.local_files:
+            parent = self.get_parent(path)
+            if path not in self.box_paths:
                 new_file = self.api.upload(parent._object_id, path.resolve())
                 self.changes.append((parent, new_file))
             else:
-                boxfile = box_paths[path]
-                size = boxfile.get(fields=['size']).size
-                if size != os.stat(path).st_size:
+                boxfile = self.box_paths[path]
+                if self.has_changed(boxfile, path):
                     updated_file = self.api.update(boxfile._object_id, path.resolve())
-                    self.changes.append((get_parent(path), updated_file))
+                    self.changes.append((parent, updated_file))
 
+    def __call__(self):
+        self.prepare()
+        self.logger.info(f'Syncing {len(self.local_files)} files in '
+                         f'{len(self.local_dirs) + 1} folders from {self.source_folder}')
+        self.sync_folders()
+        self.sync_files()
         if not self.changes:
             self.logger.warning('No changes detected')
 
@@ -110,8 +134,10 @@ class BoxSync:
         """
         Writes output CSV of what files are synced and their destinations in Box
         """
+        header = ('Item Type', 'Parent Folder ID', 'Parent Folder Name', 'Item ID', 'Item Name')
         with open(filename, 'w') as outfile:
             writer = csv.writer(outfile)
-            writer.writerow(('Item Type', 'Parent Folder ID', 'Parent Folder Name', 'Item ID', 'Item Name'))
+            writer.writerow(header)
             for parent, item in self.changes:
-                writer.writerow([item.__class__.__name__, parent._object_id, parent.name, item._object_id, item.name])
+                writer.writerow([item.__class__.__name__, parent._object_id, parent.name,
+                                 item._object_id, item.name])
