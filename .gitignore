@@ -1,6 +1,6 @@
 __pycache__
 files/
-*.json
+/*.json
 .envrc
 *.egg-info
 dist
@@ -8,3 +8,4 @@ build
 .tox/
 docs/build
 .DS_Store
+.coverage

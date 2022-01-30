@@ -21,6 +21,8 @@ Environment Variable: `SOURCE_FOLDER`
 This is a folder that is on your local file system.
 This is the directory that will be copied into your Box.com instance.
 The directory file structure and subfolders will be preserved.
+The source folder is mapped directly to the destination.
+In rsync terms, think of bsync as doing a trailing slash.
 
 You can pass additional `PATHS` after the source folder (separated by a colon)
 to only sync paths in the source folder matching that glob expression
@@ -92,4 +94,4 @@ Searches for all JPG images from `images` folder
 
 Uploads files found to the Box.com folder with ID `123456789`
 
-Logs application `DEBUG` messages to stderr 
+Logs application `DEBUG` messages to stderr

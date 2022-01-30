@@ -63,7 +63,7 @@ class BoxAPI:
         PUBLIC_KEY_ID = config['boxAppSettings']['appAuth']['publicKeyID']
         PRIVATE_KEY = config['boxAppSettings']['appAuth']['privateKey']
         PASSPHRASE = config['boxAppSettings']['appAuth']['passphrase']
-        ENTERPRISE_ID = config['enterpriseID']
+        ENTERPRISE_ID = config.get('enterpriseID')
         auth = JWTAuth(CLIENT_ID, CLIENT_SECRET, ENTERPRISE_ID, PUBLIC_KEY_ID,
                        rsa_private_key_data=PRIVATE_KEY, rsa_private_key_passphrase=PASSPHRASE)
         auth.authenticate_instance()

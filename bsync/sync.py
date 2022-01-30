@@ -18,7 +18,7 @@ class BoxSync:
         self.api = api
         self.logger = logger
         self.parent_folder_id = options['box_folder_id']
-        self.source_folder = Path(options['source_folder_paths'])
+        self.source_folder = Path(options['source_folder_paths']).expanduser()
         self.glob = '*'
         if ':' in str(self.source_folder):
             self.source_folder, self.glob = str(self.source_folder).split(':')

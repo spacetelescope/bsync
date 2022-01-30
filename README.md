@@ -16,7 +16,7 @@ The app must have JWT server side auth enabled.
 The JSON settings file with your keys will be required to run this.
 For help, see this Box developer guide
 
-https://github.com/box/developer.box.com/blob/main/content/guides/tooling/cli/quick-start/1-create-jwt-app.md
+[https://github.com/box/developer.box.com/blob/main/content/guides/tooling/cli/quick-start/1-create-jwt-app.md](https://github.com/box/developer.box.com/blob/main/content/guides/tooling/cli/quick-start/1-create-jwt-app.md)
 
 ## Usage
 

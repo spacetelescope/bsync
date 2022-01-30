@@ -8,6 +8,12 @@ ipython = "*"
 ipdb = "*"
 rich = "*"
 pytest = "*"
+sphinx = "*"
+myst-parser = "*"
+sphinxcontrib-autoprogram = "*"
+karma-sphinx-theme = "*"
+sphinx-click = "*"
+pytest-cov = "*"
 
 [packages]
 boxsdk = {extras = ["jwt"],version = "*"}
@@ -15,4 +21,4 @@ click = "*"
 progress = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3"
