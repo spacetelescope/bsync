@@ -19,6 +19,8 @@ setup(
     long_description_content_type='text/markdown',
     python_requires='>=3.6',
     project_urls={
+        'Documentation': 'https://bsync.readthedocs.io/en/latest/',
+        'Source': pkg.__url__
     },
     classifiers=[
         'Development Status :: 4 - Beta',
