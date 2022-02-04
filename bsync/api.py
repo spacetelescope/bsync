@@ -5,6 +5,9 @@ import hashlib
 from boxsdk import Client, JWTAuth
 from progress.bar import Bar
 
+# 20MB limit for simple uploads, after that, use chunked
+BOX_UPLOAD_LIMIT = 2 * 10 ** 7
+
 
 def send_chunked(path, session_func):
     """
@@ -44,8 +47,9 @@ class BoxAPI:
     Wraps boxsdk to create a client and perform actions, logging results
     """
 
-    def __init__(self, options, logger):
-        self.options = options
+    def __init__(self, logger, box_user, settings):
+        self.box_user = box_user
+        self.settings = settings
         self.logger = logger
         self._client = None
 
@@ -56,8 +60,7 @@ class BoxAPI:
         """
         if self._client:
             return self._client
-        user = self.options['box_user']
-        config = json.load(open(self.options['settings']))
+        config = json.load(open(self.settings))
         CLIENT_ID = config['boxAppSettings']['clientID']
         CLIENT_SECRET = config['boxAppSettings']['clientSecret']
         PUBLIC_KEY_ID = config['boxAppSettings']['appAuth']['publicKeyID']
@@ -68,9 +71,9 @@ class BoxAPI:
                        rsa_private_key_data=PRIVATE_KEY, rsa_private_key_passphrase=PASSPHRASE)
         auth.authenticate_instance()
         client = Client(auth)
-        me = list(client.users(filter_term=user))[0]
+        me = list(client.users(filter_term=self.box_user))[0]
         client = client.as_user(me)
-        self.logger.info(f'Created Box client for user {user}')
+        self.logger.info(f'Created Box client for user {self.box_user}')
         self._client = client
         return client
 
@@ -81,7 +84,7 @@ class BoxAPI:
         """
         total_size = os.stat(fname).st_size
         folder = self.client.folder(parent_id)
-        if total_size < 20000000:
+        if total_size < BOX_UPLOAD_LIMIT:
             uploaded_file = folder.upload(fname, upload_using_accelerator=True)
         else:
             uploaded_file = send_chunked(fname, folder.create_upload_session)
@@ -94,7 +97,7 @@ class BoxAPI:
         """
         total_size = os.stat(fname).st_size
         boxfile = self.client.file(file_id)
-        if total_size < 20000000:
+        if total_size < BOX_UPLOAD_LIMIT:
             updated_file = boxfile.update_contents(fname, upload_using_accelerator=True)
         else:
             updated_file = send_chunked(fname, boxfile.create_upload_session)

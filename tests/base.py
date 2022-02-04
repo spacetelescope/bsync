@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
 
+from bsync.log import get_logger
 
 FILES = Path(__file__).parent / 'files'
 FILE = FILES / 'settings.json'
 SIZE = os.stat(FILE).st_size
 CONTENT = open(FILE, 'rb').read()
 PARENT_ID = 1000
+LOGGER = get_logger()
 
 
 class Item:

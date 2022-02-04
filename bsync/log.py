@@ -4,14 +4,14 @@ import logging
 LEVELS = {name.lower(): value for name, value in logging._nameToLevel.items() if value}
 
 
-def get_logger(options):
+def get_logger(log_level=None, log_file=None):
     """
     Configures a logger w/ file/stream handler from settings
     """
-    level = LEVELS.get(options.get('log_level') or 'info')
+    level = LEVELS.get(log_level, logging.INFO)
     logger = logging.getLogger('bsync')
     logger.setLevel(level)
-    handler = logging.FileHandler(options['log_file']) if options.get('log_file') else logging.StreamHandler()
+    handler = logging.FileHandler(log_file) if log_file else logging.StreamHandler()
     handler.setLevel(level)
     formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
     handler.setFormatter(formatter)

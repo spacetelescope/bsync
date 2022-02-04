@@ -1,15 +1,14 @@
 from tempfile import NamedTemporaryFile
 from unittest import mock
 
-from bsync.log import get_logger
 from bsync.sync import BoxSync
 
-from .base import Item, FILES, FILE
+from .base import Item, FILES, FILE, LOGGER
 
 
 def test_sync():
     api = mock.MagicMock()
-    sync = BoxSync({'box_folder_id': 111, 'source_folder_paths': f'{FILES}:*'}, api, get_logger({}))
+    sync = BoxSync(api, LOGGER, 111, f'{FILES}:*')
     assert sync.glob == '*'
     assert sync.source_folder.absolute() == FILES.absolute()
 

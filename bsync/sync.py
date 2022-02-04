@@ -14,15 +14,16 @@ class BoxSync:
     creates directory structure and finally uploads all files
     """
 
-    def __init__(self, options, api, logger):
+    def __init__(self, api, logger, box_folder_id, source_folder_paths):
         self.api = api
         self.logger = logger
-        self.parent_folder_id = options['box_folder_id']
-        self.source_folder = Path(options['source_folder_paths']).expanduser()
+        self.box_folder_id = int(box_folder_id)
         self.glob = '*'
-        if ':' in str(self.source_folder):
-            self.source_folder, self.glob = str(self.source_folder).split(':')
-            self.source_folder = Path(self.source_folder)
+        if ':' in str(source_folder_paths):
+            self.source_folder, self.glob = source_folder_paths.split(':')
+            self.source_folder = Path(self.source_folder).expanduser()
+        else:
+            self.source_folder = Path(source_folder_paths).expanduser()
         if not self.source_folder.is_dir():
             raise UsageError(f'Source folder {self.source_folder} is not a directory')
         self.changes = []
@@ -35,7 +36,7 @@ class BoxSync:
         """
         if self._parent:
             return self._parent
-        self._parent = self.api.client.folder(self.parent_folder_id).get()
+        self._parent = self.api.client.folder(self.box_folder_id).get()
         return self._parent
 
     def to_path(self, item):
@@ -56,7 +57,7 @@ class BoxSync:
         Yields all paths recursively from the parent folder ID
         """
         if folder_id is None:
-            folder_id = self.parent_folder_id
+            folder_id = self.box_folder_id
         for item in self.api.client.folder(folder_id).get_items():
             yield self.to_path(item), item
             if isinstance(item, Folder):

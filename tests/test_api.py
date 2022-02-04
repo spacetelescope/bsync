@@ -3,13 +3,12 @@ import sys
 
 from unittest import mock
 
-from bsync.log import get_logger
 
-from .base import Item, SIZE, FILE, PARENT_ID, CONTENT
+from .base import Item, SIZE, FILE, PARENT_ID, CONTENT, LOGGER
 
 
 class MockedStat:
-    st_size = 2 * 10**7
+    st_size = 2 * 10 ** 7
 
 
 class MockedSession:
@@ -21,10 +20,9 @@ class MockedSession:
 
 
 def test_logger():
-    logger = get_logger({})
-    assert logger.level == logging.INFO
-    assert len(logger.handlers) == 1
-    hdlr = logger.handlers[0]
+    assert LOGGER.level == logging.INFO
+    assert len(LOGGER.handlers) == 1
+    hdlr = LOGGER.handlers[0]
     assert hdlr.level == logging.INFO
     assert hdlr.stream == sys.stderr
 
@@ -33,8 +31,9 @@ def test_logger():
 @mock.patch('boxsdk.JWTAuth')
 def test_api(mocked_jwt, mocked_client):
     from bsync.api import BoxAPI
+
     mocked_client.return_value.users.return_value = [1]
-    api = BoxAPI({'box_user': 'me', 'settings': FILE}, get_logger({}))
+    api = BoxAPI(LOGGER, 'me',  FILE)
 
     mocked_folder = mocked_client.return_value.as_user.return_value.folder
     mocked_file = mocked_client.return_value.as_user.return_value.file
