@@ -20,6 +20,7 @@ def nullcontext(enter_result=None):
 
 
 @click.command()
+@click.version_option(__version__)
 @click.argument('source_folder_paths', metavar='SOURCE_FOLDER[:PATHS]', envvar='SOURCE_FOLDER')
 @click.argument('box_folder_id', envvar='BOX_FOLDER_ID', type=int)
 @click.option('-u', '--box-user', default=USER, envvar='BOX_USER',
@@ -31,7 +32,6 @@ def nullcontext(enter_result=None):
 @click.option('-l', '--log-level', type=click.Choice(LEVELS, case_sensitive=False), help='Log level')
 @click.option('--log-file', type=click.Path(dir_okay=False, path_type=Path), help='Log file')
 @click.option('-i', '--ipdb', is_flag=True, help='Drop into ipdb shell on error')
-@click.option('-v', '--version', is_flag=True, help='Print bsync version and exit')
 def bsync(**options):
     """
     Syncs the contents of local folder to your Box account
@@ -45,9 +45,6 @@ def bsync(**options):
 
         bsync -s 12345.json -l DEBUG images:*.jpg 123456789
     """
-    if options['version']:
-        click.echo(__version__)
-        return
     ctx = nullcontext
     if options['ipdb']:
         from ipdb import launch_ipdb_on_exception
