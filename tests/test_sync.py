@@ -1,9 +1,18 @@
 from tempfile import NamedTemporaryFile
 from unittest import mock
+from os import getcwd
+from pathlib import Path
 
 from bsync.sync import BoxSync
 
 from .base import Item, FILES, FILE, LOGGER
+
+
+def test_cwd():
+    api = mock.MagicMock()
+    sync = BoxSync(api, LOGGER, 111, '.')
+    assert sync.glob == '*'
+    assert sync.source_folder.absolute() == Path(getcwd())
 
 
 def test_sync():

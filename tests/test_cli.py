@@ -32,4 +32,14 @@ def test_version():
 
     runner = CliRunner()
     result = runner.invoke(bsync, '--version')
-    assert result.stdout_bytes.strip().decode() == __version__
+    assert result.exit_code == 0
+    assert result.stdout_bytes.strip().decode() == f'bsync, version {__version__}'
+
+
+def test_badargs():
+    from bsync.cli import bsync
+
+    runner = CliRunner()
+    result = runner.invoke(bsync, '. 123 --settings=does.not.exist.json')
+    assert result.exit_code == 2
+    assert b'does not exist' in result.stdout_bytes
