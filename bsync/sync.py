@@ -1,6 +1,8 @@
 from pathlib import Path
 import csv
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 from click import UsageError
 from boxsdk.object.folder import Folder
@@ -71,10 +73,12 @@ class BoxSync:
         Loads entries from local filesystem and Box
         Used to decide later which items to sync
         """
-        local_paths = list(self.source_folder.rglob(self.glob))
+        self.logger.info('Loading local path info')
+        local_paths = list(sorted(self.source_folder.rglob(self.glob)))
         self.local_files = [path for path in local_paths if path.is_file()]
         self.local_dirs = [path for path in local_paths if path.is_dir()]
         self.new_dirs = {}
+        self.logger.info('Loading Box.com path info')
         self.box_paths = dict(self.get_box_paths())
 
     def get_parent(self, path):
@@ -109,21 +113,26 @@ class BoxSync:
         # TODO: compare sha1? expensive for large local files
         return boxfile.get(fields=['size']).size != os.stat(path).st_size
 
-    def sync_files(self):
+    async def sync_files(self):
         """
         Uploads the new or updated files to Box.com
         Folder structure must be created before running
         """
+        parents, tasks = [], []
         for path in self.local_files:
             parent = self.get_parent(path)
+            parents.append(parent)
             if path not in self.box_paths:
-                new_file = self.api.upload(parent._object_id, path.resolve())
-                self.changes.append((parent, new_file))
+                new_file = self.loop.run_in_executor(self.executor, self.api.upload, parent._object_id, path.resolve())
+                tasks.append(new_file)
             else:
                 boxfile = self.box_paths[path]
                 if self.has_changed(boxfile, path):
-                    updated_file = self.api.update(boxfile._object_id, path.resolve())
-                    self.changes.append((parent, updated_file))
+                    updated_file = self.loop.run_in_executor(self.executor, self.api.update, boxfile._object_id, path.resolve())
+                    tasks.append(updated_file)
+        completed, _ = await asyncio.wait(tasks)
+        results = zip(parents, [t.result() for t in completed])
+        self.changes.extend(results)
 
     def run(self):
         """
@@ -134,7 +143,9 @@ class BoxSync:
         self.logger.info(f'Syncing {len(self.local_files)} files in '
                          f'{len(self.local_dirs) + 1} folders from {self.source_folder}')
         self.sync_folders()
-        self.sync_files()
+        self.executor = ThreadPoolExecutor(6)
+        self.loop = asyncio.get_event_loop()
+        self.loop.run_until_complete(self.sync_files())
         if not self.changes:
             self.logger.warning('No changes detected')
 
