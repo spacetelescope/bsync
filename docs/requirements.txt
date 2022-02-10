@@ -3,3 +3,5 @@ myst-parser
 sphinxcontrib-autoprogram
 karma-sphinx-theme
 sphinx-click
+boxsdk
+progress
