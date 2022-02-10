@@ -1,4 +1,4 @@
-# bsync 1.1.0 documentation
+# bsync 1.2.0 documentation
 
 ## Purpose
 
@@ -28,4 +28,5 @@ Right now, this only syncs your folder to Box and not Box to your folder
 box.app.setup
 usage
 api
+changelog
 ```

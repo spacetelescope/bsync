@@ -17,7 +17,7 @@ def test_cwd():
 
 def test_sync():
     api = mock.MagicMock()
-    sync = BoxSync(api, LOGGER, 111, f'{FILES}:*')
+    sync = BoxSync(api, LOGGER, 111, f'{FILES}::*')
     assert sync.glob == '*'
     assert sync.source_folder.absolute() == FILES.absolute()
 

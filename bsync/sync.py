@@ -5,6 +5,8 @@ import os
 from click import UsageError
 from boxsdk.object.folder import Folder
 
+from bsync.settings import PATH_SEP
+
 
 class BoxSync:
     """
@@ -19,13 +21,14 @@ class BoxSync:
         self.logger = logger
         self.box_folder_id = int(box_folder_id)
         self.glob = '*'
-        if ':' in str(source_folder_paths):
-            self.source_folder, self.glob = source_folder_paths.split(':')
+        if PATH_SEP in str(source_folder_paths):
+            self.source_folder, self.glob = source_folder_paths.split(PATH_SEP)
             self.source_folder = Path(self.source_folder).expanduser()
         else:
             self.source_folder = Path(source_folder_paths).expanduser()
         if not self.source_folder.is_dir():
             raise UsageError(f'Source folder {self.source_folder} is not a directory')
+        self.logger.debug(f'Scanning paths matching {self.glob} in folder {self.source_folder}')
         self.changes = []
         self._parent = None
 

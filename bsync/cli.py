@@ -17,7 +17,7 @@ def nullcontext(enter_result=None):
 
 @click.command()
 @click.version_option(__version__)
-@click.argument('source_folder_paths', metavar='SOURCE_FOLDER[:PATHS]', envvar='SOURCE_FOLDER')
+@click.argument('source_folder_paths', metavar='SOURCE_FOLDER[::PATHS]', envvar='SOURCE_FOLDER')
 @click.argument('box_folder_id', envvar='BOX_FOLDER_ID', type=int)
 @click.option('-s', '--settings', envvar='BOX_SETTINGS_FILE',
               type=click.Path(exists=True, dir_okay=False, path_type=Path))
@@ -37,7 +37,7 @@ def bsync(**options):
 
     Example:
 
-        bsync -s 12345.json -l DEBUG images:*.jpg 123456789
+        bsync -s 12345.json -l DEBUG images::*.jpg 123456789
     """
     ctx = nullcontext
     if options['ipdb']:
