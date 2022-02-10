@@ -5,8 +5,7 @@ import hashlib
 from boxsdk import Client, JWTAuth
 from progress.bar import Bar
 
-# 20MB limit for simple uploads, after that, use chunked
-BOX_UPLOAD_LIMIT = 2 * 10 ** 7
+from bsync.settings import BOX_UPLOAD_LIMIT
 
 
 def send_chunked(path, session_func):
@@ -47,8 +46,7 @@ class BoxAPI:
     Wraps boxsdk to create a client and perform actions, logging results
     """
 
-    def __init__(self, logger, box_user, settings):
-        self.box_user = box_user
+    def __init__(self, logger, settings):
         self.settings = settings
         self.logger = logger
         self._client = None
@@ -71,7 +69,7 @@ class BoxAPI:
                        rsa_private_key_data=PRIVATE_KEY, rsa_private_key_passphrase=PASSPHRASE)
         auth.authenticate_instance()
         client = Client(auth)
-        self.logger.info(f'Created Box client for user {self.box_user}')
+        self.logger.info(f'Created Box client for app {CLIENT_ID}')
         self._client = client
         return client
 

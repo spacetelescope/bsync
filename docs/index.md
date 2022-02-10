@@ -1,4 +1,4 @@
-# bsync 0.1.1 documentation
+# bsync 1.1.0 documentation
 
 ## Purpose
 

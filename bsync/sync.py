@@ -122,7 +122,11 @@ class BoxSync:
                     updated_file = self.api.update(boxfile._object_id, path.resolve())
                     self.changes.append((parent, updated_file))
 
-    def __call__(self):
+    def run(self):
+        """
+        Main method that finds local files and matching files on Box.
+        Then syncs the folder/subfolder structure and finally syncs any files to Box from the local machine
+        """
         self.prepare()
         self.logger.info(f'Syncing {len(self.local_files)} files in '
                          f'{len(self.local_dirs) + 1} folders from {self.source_folder}')

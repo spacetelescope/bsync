@@ -1,6 +1,6 @@
 __name__ = 'bsync'
 __title__ = 'Sync files on your computer to Box.com'
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 __author__ = 'Justin Quick'
 __author_email__ = 'jquick@stsci.edu'
 __url__ = 'https://github.com/spacetelescope/bsync'

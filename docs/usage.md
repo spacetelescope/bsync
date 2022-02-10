@@ -55,14 +55,6 @@ The source path to the JSON settings file for you Box app.
 
 See the [](App) page if you havent already
 
-### `--box-user`
-
-Environment Variable: `BOX_USER`
-
-The user who will own the files you upload.
-This should be the user who created the app (unless you have the as-user feature enabled).
-Defaults to current user
-
 ### `--output`
 
 The file path to write a log of which files and folders were created.

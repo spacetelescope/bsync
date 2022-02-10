@@ -47,6 +47,16 @@ Once your app has been approved by your administrators, go back to the `Configur
 
 ![Generate Keys](./static/app.keys.png)
 
+## Add Service Account to Folders
+
+In order for you to be able to use your app to access any of your folders, Box.com uses service accounts attached to the app. Under your app's `General Settings` tab on the top left, scroll down to the `Service Account Info` and use the email address there to let your app collaborate with the folders you want to sync.
+
+![Service Account](./static/app.service.account.png)
+
+Now navigate to your target folders and add the service account by email to the folder as an `Editor`. Now your app has permissions to upload your files to the folder to which you have added your service account.
+
+![Service Account Editor](./static/app.editor.png)
+
 You have complete'd your app install, now you can `bsync`
 
 Check out the [](Usage) page to see how

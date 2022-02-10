@@ -45,7 +45,7 @@ def test_sync():
     assert path == FILES / 'subfolder' / 'foobar.py'
     assert len(api.client.folder.call_args_list) == 2
 
-    sync()
+    sync.run()
     api.upload.assert_called()
     args, _ = api.create_folder.call_args_list[0]
     assert args == (111, 'subfolder')

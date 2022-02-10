@@ -1,6 +1,5 @@
 from unittest import mock
 from pathlib import Path
-from getpass import getuser
 
 from click.testing import CliRunner
 
@@ -19,7 +18,7 @@ def test_bsync(mocked_api, mocked_logger, mocked_sync):
     args, _ = mocked_logger.call_args_list[0]
     assert args == ('error', Path('bar.log'))
     args, _ = mocked_api.call_args_list[0]
-    assert args == (mocked_logger(), getuser(), FILE)
+    assert args == (mocked_logger(), FILE)
     args, _ = mocked_sync.call_args_list[0]
     assert args == (mocked_api(), mocked_logger(), 1234, f'{FILES}:*.json')
     args, _ = mocked_sync.return_value.output.call_args_list[0]

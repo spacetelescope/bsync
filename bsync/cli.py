@@ -1,17 +1,13 @@
 from pathlib import Path
-from getpass import getuser
 from contextlib import contextmanager
 
 import click
 
-
 from bsync.api import BoxAPI
 from bsync.sync import BoxSync
-from bsync.log import get_logger, LEVELS
+from bsync.log import get_logger
+from bsync.settings import LOG_LEVELS
 from bsync.__version__ import __version__
-
-
-USER = getuser()
 
 
 @contextmanager
@@ -23,13 +19,11 @@ def nullcontext(enter_result=None):
 @click.version_option(__version__)
 @click.argument('source_folder_paths', metavar='SOURCE_FOLDER[:PATHS]', envvar='SOURCE_FOLDER')
 @click.argument('box_folder_id', envvar='BOX_FOLDER_ID', type=int)
-@click.option('-u', '--box-user', default=USER, envvar='BOX_USER',
-              help=f'User account name on Box.com. Defaults to {USER}')
 @click.option('-s', '--settings', envvar='BOX_SETTINGS_FILE',
               type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option('-o', '--output', type=click.Path(dir_okay=False, path_type=Path),
               help='File to write created items as CSV report')
-@click.option('-l', '--log-level', type=click.Choice(LEVELS, case_sensitive=False), help='Log level')
+@click.option('-l', '--log-level', type=click.Choice(LOG_LEVELS, case_sensitive=False), help='Log level')
 @click.option('--log-file', type=click.Path(dir_okay=False, path_type=Path), help='Log file')
 @click.option('-i', '--ipdb', is_flag=True, help='Drop into ipdb shell on error')
 def bsync(**options):
@@ -57,8 +51,8 @@ def bsync(**options):
 
     with ctx():
         logger = get_logger(options['log_level'], options['log_file'])
-        api = BoxAPI(logger, options['box_user'], options['settings'])
+        api = BoxAPI(logger, options['settings'])
         bsync = BoxSync(api, logger, options['box_folder_id'], options['source_folder_paths'])
-        bsync()
+        bsync.run()
         if options['output']:
             bsync.output(options['output'])

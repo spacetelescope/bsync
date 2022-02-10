@@ -33,10 +33,10 @@ def test_api(mocked_jwt, mocked_client):
     from bsync.api import BoxAPI
 
     mocked_client.return_value.users.return_value = [1]
-    api = BoxAPI(LOGGER, 'me',  FILE)
+    api = BoxAPI(LOGGER, FILE)
 
-    mocked_folder = mocked_client.return_value.as_user.return_value.folder
-    mocked_file = mocked_client.return_value.as_user.return_value.file
+    mocked_folder = mocked_client.return_value.folder
+    mocked_file = mocked_client.return_value.file
     mocked_folder.return_value.create_subfolder.return_value = Item('folder', 111, 'test subfolder')
     subfolder = api.create_folder(PARENT_ID, 'test-folder')
     subfolder._assert('folder', 111, 'test subfolder')
