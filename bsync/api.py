@@ -17,7 +17,7 @@ def send_chunked(path, session_func):
     sha1 = hashlib.sha1()
     upload_session = session_func(total_size, path.name)
     part_array = []
-    bar = Bar(path.name, max=upload_session.total_parts)
+    bar = Bar(path.name, max=upload_session.total_parts, suffix='%(percent)d%%')
     content_stream = open(path, 'rb')
 
     for part_num in range(upload_session.total_parts):
@@ -71,8 +71,6 @@ class BoxAPI:
                        rsa_private_key_data=PRIVATE_KEY, rsa_private_key_passphrase=PASSPHRASE)
         auth.authenticate_instance()
         client = Client(auth)
-        me = list(client.users(filter_term=self.box_user))[0]
-        client = client.as_user(me)
         self.logger.info(f'Created Box client for user {self.box_user}')
         self._client = client
         return client
