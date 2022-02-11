@@ -113,6 +113,9 @@ class BoxSync:
         # TODO: compare sha1? expensive for large local files
         return boxfile.get(fields=['size']).size != os.stat(path).st_size
 
+    def _run_upload(self, method, object_id, path):
+        return self.loop.run_in_executor(self.executor, method, object_id, path)
+
     async def sync_files(self):
         """
         Uploads the new or updated files to Box.com
@@ -123,13 +126,11 @@ class BoxSync:
             parent = self.get_parent(path)
             parents.append(parent)
             if path not in self.box_paths:
-                new_file = self.loop.run_in_executor(self.executor, self.api.upload, parent._object_id, path.resolve())
-                tasks.append(new_file)
+                tasks.append(self._run_upload(self.api.upload, parent._object_id, path))
             else:
                 boxfile = self.box_paths[path]
                 if self.has_changed(boxfile, path):
-                    updated_file = self.loop.run_in_executor(self.executor, self.api.update, boxfile._object_id, path.resolve())
-                    tasks.append(updated_file)
+                    tasks.append(self._run_upload(self.api.update, boxfile._object_id, path))
         completed, _ = await asyncio.wait(tasks)
         results = zip(parents, [t.result() for t in completed])
         self.changes.extend(results)
@@ -146,6 +147,7 @@ class BoxSync:
         self.executor = ThreadPoolExecutor(6)
         self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.sync_files())
+
         if not self.changes:
             self.logger.warning('No changes detected')
 
