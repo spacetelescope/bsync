@@ -2,7 +2,7 @@ from pathlib import Path
 import csv
 import os
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor as Executor
 
 from click import UsageError
 from boxsdk.object.folder import Folder
@@ -18,7 +18,7 @@ class BoxSync:
     creates directory structure and finally uploads all files
     """
 
-    def __init__(self, api, logger, box_folder_id, source_folder_paths):
+    def __init__(self, api, logger, concurrency, box_folder_id, source_folder_paths):
         self.api = api
         self.logger = logger
         self.box_folder_id = int(box_folder_id)
@@ -33,6 +33,8 @@ class BoxSync:
         self.logger.debug(f'Scanning paths matching {self.glob} in folder {self.source_folder}')
         self.changes = []
         self._parent = None
+        self.executor = Executor(concurrency)
+        self.loop = asyncio.get_event_loop()
 
     @property
     def parent_folder(self):

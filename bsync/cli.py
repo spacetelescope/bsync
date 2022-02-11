@@ -1,5 +1,6 @@
 from pathlib import Path
 from contextlib import contextmanager
+from multiprocessing import cpu_count
 
 import click
 
@@ -23,6 +24,9 @@ def nullcontext(enter_result=None):
               type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option('-o', '--output', type=click.Path(dir_okay=False, path_type=Path),
               help='File to write created items as CSV report')
+@click.option('-c', '--concurrency', type=int, default=cpu_count(),
+              help='Number of threads used to access the Box API using asyncio. '
+              'The default is the number of CPUs available on your system.')
 @click.option('-l', '--log-level', type=click.Choice(LOG_LEVELS, case_sensitive=False), help='Log level')
 @click.option('--log-file', type=click.Path(dir_okay=False, path_type=Path), help='Log file')
 @click.option('-i', '--ipdb', is_flag=True, help='Drop into ipdb shell on error')
@@ -52,7 +56,7 @@ def bsync(**options):
     with ctx():
         logger = get_logger(options['log_level'], options['log_file'])
         api = BoxAPI(logger, options['settings'])
-        bsync = BoxSync(api, logger, options['box_folder_id'], options['source_folder_paths'])
+        bsync = BoxSync(api, logger, options['concurrency'], options['box_folder_id'], options['source_folder_paths'])
         bsync.run()
         if options['output']:
             bsync.output(options['output'])
