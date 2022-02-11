@@ -36,7 +36,6 @@ setup(
     install_requires=[
         'boxsdk[jwt]',
         'click',
-        'progress',
     ],
     tests_require=['pytest'],
     entry_points={

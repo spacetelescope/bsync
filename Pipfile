@@ -18,7 +18,6 @@ pytest-cov = "*"
 [packages]
 boxsdk = {extras = ["jwt"],version = "*"}
 click = "*"
-progress = "*"
 
 [requires]
 python_version = "3"
