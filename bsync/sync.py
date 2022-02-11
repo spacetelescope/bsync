@@ -146,8 +146,6 @@ class BoxSync:
         self.logger.info(f'Syncing {len(self.local_files)} files in '
                          f'{len(self.local_dirs) + 1} folders from {self.source_folder}')
         self.sync_folders()
-        self.executor = ThreadPoolExecutor(6)
-        self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.sync_files())
 
         if not self.changes:
