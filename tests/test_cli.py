@@ -13,14 +13,14 @@ def test_bsync(mocked_api, mocked_logger, mocked_sync):
     from bsync.cli import bsync
 
     runner = CliRunner()
-    result = runner.invoke(bsync, f'{FILES}:*.json 1234 --settings={FILE} --output=foo.csv -l error --log-file bar.log')
+    result = runner.invoke(bsync, f'{FILES}:*.json 1234 --settings={FILE} --output=foo.csv -l error --log-file bar.log -c 2')
     assert result.exit_code == 0
     args, _ = mocked_logger.call_args_list[0]
     assert args == ('error', Path('bar.log'))
     args, _ = mocked_api.call_args_list[0]
     assert args == (mocked_logger(), FILE)
     args, _ = mocked_sync.call_args_list[0]
-    assert args == (mocked_api(), mocked_logger(), 1234, f'{FILES}:*.json')
+    assert args == (mocked_api(), mocked_logger(), 2, 1234, f'{FILES}:*.json')
     args, _ = mocked_sync.return_value.output.call_args_list[0]
     assert args[0] == Path('foo.csv')
 

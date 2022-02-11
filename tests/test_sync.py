@@ -10,14 +10,14 @@ from .base import Item, FILES, FILE, LOGGER
 
 def test_cwd():
     api = mock.MagicMock()
-    sync = BoxSync(api, LOGGER, 111, '.')
+    sync = BoxSync(api, LOGGER, 2, 111, '.')
     assert sync.glob == '*'
     assert sync.source_folder.absolute() == Path(getcwd())
 
 
 def test_sync():
     api = mock.MagicMock()
-    sync = BoxSync(api, LOGGER, 111, f'{FILES}::*')
+    sync = BoxSync(api, LOGGER, 2, 111, f'{FILES}::*')
     assert sync.glob == '*'
     assert sync.source_folder.absolute() == FILES.absolute()
 
